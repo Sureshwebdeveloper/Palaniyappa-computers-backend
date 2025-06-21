@@ -1,4 +1,4 @@
-import AadharEnrolment from "../Models/AadharEnrolment.js";
+import AadharEnrolment from "../Models/Aadharcount.js";
 
 export const addAadharEntry = async (req, res) => {
   try {

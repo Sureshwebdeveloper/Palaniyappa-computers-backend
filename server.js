@@ -3,7 +3,6 @@ import cors from "cors";
 import dotenv from "dotenv";
 import jwt from "jsonwebtoken";
 import connectDB from "./config/db.js"; // MongoDB connection
-import cron from "node-cron";
 import aadharRoutes from "./Routes/AadharRoute.js";
 import childRoutes from "./Routes/ChildRoute.js";
 import phoneRoutes from "./Routes/PhoneRoute.js";
@@ -52,13 +51,8 @@ app.use("/aadhar", authenticate, aadharRoutes);
 app.use("/child", authenticate, childRoutes);
 app.use("/phone", authenticate, phoneRoutes);
 app.use("/today", authenticate, todayReportRoutes);
-app.use("/weekly", authenticate, weeklyReportRoutes);
+app.use("/weekly-report", authenticate, weeklyReportRoutes);
 
-// ✅ Move today’s entries to Weekly Report at midnight
-cron.schedule("0 0 * * *", () => {
-  console.log("Moving today's report to Weekly Report...");
-  moveTodayToWeekly();
-});
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`));

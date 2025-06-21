@@ -1,8 +1,8 @@
 import express from "express";
-import { getWeeklyReport } from "../Controllers/WeeklyReportController.js";
+import { getSmartWeeklyReport } from "../Controllers/WeeklyReportController.js";
 
 const router = express.Router();
 
-router.get("/", getWeeklyReport);
+router.get("/", getSmartWeeklyReport);
 
 export default router;

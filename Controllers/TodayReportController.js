@@ -1,7 +1,7 @@
 import AadharEnrolment from "../Models/AadharEnrolment.js";
 import ChildAadhar from "../Models/ChildAadhar.js";
 import PhoneEnrolment from "../Models/PhoneNumber.js";
-// import WeeklyReport from "../Models/";
+import WeeklyReport from "../Models/WeeklyReportModel.js";
 
 // ✅ Get Today's Report
 export const getTodayReport = async (req, res) => {
@@ -21,31 +21,39 @@ export const getTodayReport = async (req, res) => {
 // ✅ Move Today’s Data to Weekly at Midnight
 export const moveTodayToWeekly = async () => {
   try {
-    const todayDate = new Date().toLocaleDateString();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
 
-    const todayEntries = [
-      ...(await AadharEnrolment.find({ date: todayDate })),
-      ...(await ChildAadhar.find({ date: todayDate })),
-      ...(await PhoneEnrolment.find({ date: todayDate })),
-    ];
+    const entries = await Promise.all([
+      AadharEnrolment.find({ date: { $gte: today, $lt: tomorrow } }),
+      ChildAadhar.find({ date: { $gte: today, $lt: tomorrow } }),
+      PhoneEnrolment.find({ date: { $gte: today, $lt: tomorrow } }),
+    ]);
 
-    todayEntries.forEach(async (entry, index) => {
+    const allEntries = [...entries[0], ...entries[1], ...entries[2]];
+
+    for (let i = 0; i < allEntries.length; i++) {
+      const entry = allEntries[i];
       await WeeklyReport.create({
-        entryNo: index + 1, // Auto-increment count
+        entryNo: i + 1,
         date: entry.date,
         count: entry.count,
         price: entry.price,
         subtotal: entry.subtotal,
       });
-    });
+    }
 
-    // ✅ Delete today’s data after moving to Weekly Report
-    await AadharEnrolment.deleteMany({ date: todayDate });
-    await ChildAadhar.deleteMany({ date: todayDate });
-    await PhoneEnrolment.deleteMany({ date: todayDate });
+    await Promise.all([
+      AadharEnrolment.deleteMany({ date: { $gte: today, $lt: tomorrow } }),
+      ChildAadhar.deleteMany({ date: { $gte: today, $lt: tomorrow } }),
+      PhoneEnrolment.deleteMany({ date: { $gte: today, $lt: tomorrow } }),
+    ]);
 
-    console.log("Today's data successfully moved to Weekly Report.");
+    console.log("✅ Today's data successfully moved to Weekly Report.");
   } catch (error) {
-    console.error("Error moving today's report to Weekly:", error);
+    console.error("❌ Error moving today's report to Weekly:", error);
   }
 };
+
